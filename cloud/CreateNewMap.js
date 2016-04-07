@@ -9,13 +9,12 @@
  * Ben Turner, Junto Games. Copyright 2015
  */
 
-var UtilFunctions = require('./cloud/UtilFunctions.js');
+var UtilFunctions = require('./UtilFunctions.js');
 
 /**
  * This function distributes armies for the number of players
  */
 Parse.Cloud.define("requestNewMap", function(request, response) {
-    Parse.Cloud.useMasterKey();
     var MapState = Parse.Object.extend("MapState");
     var mapStateResult = new MapState();
     var params = request.params;
@@ -181,18 +180,21 @@ Parse.Cloud.define("requestNewMap", function(request, response) {
                                         },
                                         error: function(result, error) {
                                             response.error(error.message);
-                                        }
+                                        },
+                                        useMasterKey : true
                                     });
                                 }
                             },
                             error: function(mapStateResult, error) {
                                 response.error("Failed to create new object, with error code: " + error.message);
-                            }
+                            },
+                            useMasterKey : true
                         });
                     },
                     error: function(error) {
                         response.error(error.message);
-                    }
+                    },
+                    useMasterKey : true
                 });
             }
         });
@@ -205,7 +207,6 @@ Parse.Cloud.define("requestNewMap", function(request, response) {
  * This function searches for a game that matches the specified paremeters or creates a new one
  */
 Parse.Cloud.define("joinGame", function(request, response) {
-    Parse.Cloud.useMasterKey();
     var params = request.params;
     var mapName = params.mapName;
     var challengeMode = params.challengeMode;
@@ -253,7 +254,8 @@ Parse.Cloud.define("joinGame", function(request, response) {
                                 }, 
                                 error: function(error) {
                                     response.error('Failed to save Map Request to user: ' + error.message);
-                                }
+                                },
+                                useMasterKey : true
                             });
                         } else {
                             var requestObjectId = result.id;
@@ -322,12 +324,14 @@ Parse.Cloud.define("joinGame", function(request, response) {
                                         },
                                         error: function(error) {
                                             
-                                        }
+                                        },
+                                        useMasterKey : true
                                     });
                                 },
                                 error: function(myObject, error) {
                                     response.error("Error deleting request object " + error.code + ": " + error.message);
-                                }
+                                },
+                                useMasterKey : true
                             });
                         }
                     } else {
@@ -355,18 +359,21 @@ Parse.Cloud.define("joinGame", function(request, response) {
                                 },
                                 error: function(error) {
                                     response.error('Failed to save Map Request to user on create new: ' + error.message + " Code: " + error.code);
-                                }
+                                },
+                                useMasterKey : true
                             });
                         }, 
                         error: function(error) {
                             response.error('Failed to create new request object, with error code: ' + error.message);
-                        }
+                        },
+                        useMasterKey : true
                     });
                 }
             },
             error: function(error) {
                 response.error("Error result join game " + error.code + ": " + error.message);
-            }
+            },
+            useMasterKey : true
         });
     } else {
         response.error("Invalid mapName");

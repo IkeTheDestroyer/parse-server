@@ -10,7 +10,7 @@
  */
 /// <reference path="../parse/parse.d.ts" />
 
-var UtilFunctions = require('./cloud/UtilFunctions.js');
+var UtilFunctions = require('./UtilFunctions.js');
 
 /**
  * This function submits a turn from a user
@@ -243,12 +243,14 @@ Parse.Cloud.define("submitTurn", function(request, response) {
                                          },
                                          error: function(error) {
                                             response.error("Error saving user losses " + error.message);
-                                         }
+                                         },
+                                         useMasterKey : true
                                     });
                                 },
                                 error: function(object, error) {
                                     response.error("Error getting user on defeat " + error.message);
-                                }
+                                },
+                                useMasterKey : true
                             });
                         }
                     }
@@ -713,14 +715,16 @@ Parse.Cloud.define("submitTurn", function(request, response) {
                         },
                         error: function(mapStateResult, error) {
                             response.error("failed to save mapState " + error.message);
-                        }
+                        }, 
+                        useMasterKey : true
                     });
                 }
             });
         },
         error: function(object, error) {
             response.error("Game expired");
-        }
+        },
+        useMasterKey : true
     });
 
 });

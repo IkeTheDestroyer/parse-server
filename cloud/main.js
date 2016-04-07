@@ -8,13 +8,12 @@
  *
  * Ben Turner, Junto Games. Copyright 2015
  */
-require("./cloud/BeforeSaveFunctions.js");
-require("./cloud/BeforeDeleteFunctions.js");
-require("./cloud/CreateNewMap.js");
-require("./cloud/SubmitTurn.js");
-require("./cloud/Jobs.js");
+require("./BeforeSaveFunctions.js");
+require("./BeforeDeleteFunctions.js");
+require("./CreateNewMap.js");
+require("./SubmitTurn.js");
 
-var UtilFunctions = require("cloud/UtilFunctions.js");
+var UtilFunctions = require("./UtilFunctions.js");
 
 /// <reference path="../parse/parse.d.ts" />
 
@@ -34,7 +33,8 @@ Parse.Cloud.define("exchangeResources", function(request, response) {
             }, 
             error: function(result, error) {
                 response.error(error);
-            }
+            },
+            useMasterKey : true
         });
         response.success();
     } else {
@@ -46,7 +46,6 @@ Parse.Cloud.define("exchangeResources", function(request, response) {
  * Removes Player From Game
  */
 Parse.Cloud.define("playerForfeit", function(request, response) {
-    Parse.Cloud.useMasterKey();
     if(request.user != null) {
         var mapStateId = request.params.mapStateId;
         var mapState = Parse.Object.extend("MapState");
@@ -99,12 +98,14 @@ Parse.Cloud.define("playerForfeit", function(request, response) {
                                     error: function(error) {
                                         // Handle error
                                         response.error("Push unsuccessful")
-                                    }
+                                    },
+                                    useMasterKey : true
                                 });
                             },
                             error: function(mapStateResult, error) {
                                 response.error("Failed to save mapState " + error.message);
-                            }
+                            },
+                            useMasterKey : true
                         });
                     }
                 } else {
@@ -114,7 +115,8 @@ Parse.Cloud.define("playerForfeit", function(request, response) {
             error: function(object, error) {
                 var errorMessage = "Error finding game " + mapStateId + ", " + error.code + ": " + error.message;
                 response.error(errorMessage);
-            }
+            },
+            useMasterKey : true
         });
     }
 });
@@ -124,7 +126,6 @@ Parse.Cloud.define("playerForfeit", function(request, response) {
  */
 Parse.Cloud.define("resetUserRecord", function(request, response) {
     if(request.user != null) {
-        Parse.Cloud.useMasterKey();
         request.user.set("wins", 0);
         request.user.set("losses", 0);
         request.user.set("forfeits", 0);
@@ -134,7 +135,8 @@ Parse.Cloud.define("resetUserRecord", function(request, response) {
             },
             error: function(error) {
                 response.error(error.message);
-            }
+            },
+            useMasterKey : true
         });
     } else {
         response.error("Invalid User");
@@ -146,7 +148,6 @@ Parse.Cloud.define("resetUserRecord", function(request, response) {
  * Removes Player From map request
  */
 Parse.Cloud.define("leaveMapRequest", function(request, response) {
-    Parse.Cloud.useMasterKey();
     if(request.user != null) {
         var requestId = request.params.mapRequestId;
         var mapRequest = Parse.Object.extend("MapRequest");
@@ -170,7 +171,8 @@ Parse.Cloud.define("leaveMapRequest", function(request, response) {
                             },
                             error: function(error) {
                                 response.error("Error deleting map request " + error.message);
-                            }
+                            },
+                            useMasterKey : true
                         });
                     } else {
                         var wins = requestResult.get("wins");
@@ -192,12 +194,14 @@ Parse.Cloud.define("leaveMapRequest", function(request, response) {
                                     },
                                     error: function(result, error) {
                                         response.error(error);
-                                    }
+                                    },
+                                    useMasterKey : true
                                 });
                             },
                             error: function(error) {
                                 response.error("Error saving map request " + error.message);
-                            }
+                            },
+                            useMasterKey : true
                         });
                     }
                 } else {
@@ -206,7 +210,8 @@ Parse.Cloud.define("leaveMapRequest", function(request, response) {
             }, 
             error: function(error) {
                 response.error("Error getting map request " + error.message);
-            }
+            },
+            useMasterKey : true
         });
     } else {
         response.error("Invalid user");
@@ -248,7 +253,8 @@ Parse.Cloud.define("buyItem", function(request, response) {
             },
             error: function(error) {
                 response.error(error.message);
-            }
+            },
+            useMasterKey : true
         });
     } else {
         response.error("User not set");
@@ -259,7 +265,6 @@ Parse.Cloud.define("buyItem", function(request, response) {
  * Consume item and update it on user
  */
 Parse.Cloud.define("consumeItem", function(request, response) {
-    Parse.Cloud.useMasterKey();
     var itemName = request.params.itemName;
     var quantity = request.params.quantity;
     if(request.user != null) {
@@ -278,7 +283,8 @@ Parse.Cloud.define("consumeItem", function(request, response) {
             },
             error: function(error) {
                 response.error(error.message);
-            }
+            },
+            useMasterKey : true
         });
     } else {
         response.error("User not set");
@@ -289,7 +295,6 @@ Parse.Cloud.define("consumeItem", function(request, response) {
  * add credits
  */
 Parse.Cloud.define("addCredits", function(request, response) {
-    Parse.Cloud.useMasterKey();
     var amount = request.params.amount;
     if(request.user != null) {
         request.user.increment("credits", amount);
@@ -299,7 +304,8 @@ Parse.Cloud.define("addCredits", function(request, response) {
             },
             error: function(error) {
                 response.error(error.message);
-            }
+            },
+            useMasterKey : true
         });
     } else {
         response.error("User not set");
@@ -332,7 +338,8 @@ Parse.Cloud.define("checkUserNameAvailable", function(request, response) {
                         },
                         error: function(error) {
                             response.error(error.message);
-                        }
+                        },
+                        useMasterKey : true
                     });
                 } else {
                     response.success(potentialName);
@@ -341,7 +348,8 @@ Parse.Cloud.define("checkUserNameAvailable", function(request, response) {
         },
         error: function(object, error) {
             response.error(error);
-        }
+        },
+        useMasterKey : true
     });
 });
 
@@ -349,7 +357,6 @@ Parse.Cloud.define("checkUserNameAvailable", function(request, response) {
  * Check if deviceId available
  */
 Parse.Cloud.define("checkDeviceIdInUse", function(request, response) {
-    Parse.Cloud.useMasterKey();
     var deviceId = request.params.deviceId;
     if(deviceId == "") {
         response.error("Invalid Id");
@@ -366,7 +373,8 @@ Parse.Cloud.define("checkDeviceIdInUse", function(request, response) {
         },
         error: function(object, error) {
             response.error(error);
-        }
+        },
+        useMasterKey : true
     });
 });
 
@@ -374,7 +382,6 @@ Parse.Cloud.define("checkDeviceIdInUse", function(request, response) {
  * Set deviceId
  */
 Parse.Cloud.define("setDeviceId", function(request, response) {
-    Parse.Cloud.useMasterKey();
     var deviceId = request.params.deviceId;
     if(deviceId == "") {
         response.error("Invalid Id");
@@ -387,7 +394,8 @@ Parse.Cloud.define("setDeviceId", function(request, response) {
             },
             error: function(error) {
                 response.error(error.message);
-            }
+            },
+            useMasterKey : true
         });
     } else {
         response.error("No User");
@@ -398,7 +406,6 @@ Parse.Cloud.define("setDeviceId", function(request, response) {
  * Update friend data saved on user
  */
 Parse.Cloud.define("updateFriendData", function(request, response) {
-    Parse.Cloud.useMasterKey();
     var facebookIds = request.params.facebookIds;
     var newFriendData = [];
     var userQuery = new Parse.Query("_User");
@@ -444,12 +451,14 @@ Parse.Cloud.define("updateFriendData", function(request, response) {
                 },
                 error: function(error) {
                     response.error("Error saving user data" + error);
-                }
+                },
+                useMasterKey : true
             });
         },
         error: function(object, error) {
             response.error("Error in finding facbook friends ids " + error);
-        }
+        },
+        useMasterKey : true
     });
 });
 
@@ -457,7 +466,6 @@ Parse.Cloud.define("updateFriendData", function(request, response) {
  * Update friend data saved on user
  */
 Parse.Cloud.define("addFriend", function(request, response) {
-    Parse.Cloud.useMasterKey();
     var userQuery = new Parse.Query("_User");
     userQuery.get(request.params.objectId, {
         success: function(newFriend) {
@@ -481,7 +489,8 @@ Parse.Cloud.define("addFriend", function(request, response) {
                     },
                     error: function(error) {
                         response.error("Error saving user data" + error);
-                    }
+                    },
+                    useMasterKey : true
                 });
             } else {
                 response.success(newFriend);
@@ -489,7 +498,8 @@ Parse.Cloud.define("addFriend", function(request, response) {
         },
         error: function(object, error) {
             response.error("Error in finding facbook friends ids " + error);
-        }
+        },
+        useMasterKey : true
     });
 });
 
@@ -497,7 +507,6 @@ Parse.Cloud.define("addFriend", function(request, response) {
  * Update friend data saved on user
  */
 Parse.Cloud.define("userExistsWithFbId", function(request, response) {
-    Parse.Cloud.useMasterKey();
     var facebookId = request.params.facebookId;
     var userQuery = new Parse.Query("_User");
     userQuery.equalTo("facebookId", facebookId);
@@ -511,13 +520,14 @@ Parse.Cloud.define("userExistsWithFbId", function(request, response) {
         },
         error: function(object, error) {
             response.error("Erorr finding user " + error);
-        }
+        },
+        useMasterKey : true
     });
 });
 
 
 
-Array.prototype.sortNumeric = function() {
-    this.sort(function (a,b) {return b-a});
-};
+// Array.prototype.sortNumeric = function() {
+//     this.sort(function (a,b) {return b-a});
+// };
 

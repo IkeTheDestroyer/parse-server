@@ -36,7 +36,8 @@ exports.getMapTemplate = function (mapName, callback) {
             },
             error: function(error) {
                 console.error("Error finding mapName " + error.code + ": " + error.message);
-            }
+            },
+            useMasterKey : true
         });
     }
 };
@@ -150,7 +151,8 @@ exports.sendPush = function(playerIndex, message, mapState, successFunction, fai
                 if(failureFunction != null) {
                     failureFunction(error);
                 }
-            }
+            },
+            useMasterKey : true
         });
     }
 };
@@ -235,13 +237,15 @@ exports.removePlayerFromMapstate = function(playerIndex, mapState, removalType) 
                     success: function() {
                     },
                     error: function(error) {
-                    console.error("Error saving user losses " + error);
-                    }
+                        console.error("Error saving user losses " + error);
+                    },
+                    useMasterKey : true
             });
         },
         error: function(object, error) {
             console.error("Error getting user on removal " + error);
-        }
+        },
+        useMasterKey : true
     });
     userNameValues.splice(playerIndex, 1);
     userIds.splice(playerIndex, 1);
@@ -264,7 +268,8 @@ exports.removePlayerFromMapstate = function(playerIndex, mapState, removalType) 
             },
             error: function(error) {
                 console.error("Error deleting map state " + error);
-            }
+            },
+            useMasterKey : true
         });
     }
 };
