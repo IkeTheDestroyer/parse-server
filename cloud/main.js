@@ -223,7 +223,6 @@ Parse.Cloud.define("leaveMapRequest", function(request, response) {
  * Buy item and update it on user
  */
 Parse.Cloud.define("buyItem", function(request, response) {
-    Parse.Cloud.useMasterKey();
     var itemName = request.params.itemName;
     var quantity = request.params.quantity;
     var price = request.params.price;

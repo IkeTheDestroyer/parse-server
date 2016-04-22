@@ -79,7 +79,7 @@ Parse.Cloud.define("requestNewMap", function(request, response) {
                 mapStateResult.set("territoryArmyMap", territoryArmyMap);
                 mapStateResult.set("playersTurn", 0);
                 mapStateResult.set("currentGameMode", "placement");
-                mapStateResult.set("createdBy", request.user.id);
+                mapStateResult.set("createdBy", params.userIds[0]);
                 mapStateResult.set("isOnlineGame", true);
                 mapStateResult.set("round", 0);
                 mapStateResult.set("orbitOffset", 0);
@@ -95,8 +95,12 @@ Parse.Cloud.define("requestNewMap", function(request, response) {
                     createdByRandom = true;
                 }
                 mapStateResult.set("createdByRandom", createdByRandom);
-                if(request.user.get("facebookName")) {
-                    mapStateResult.set("creatorFacebookName", UtilFunctions.myCiphering.encrypt(request.user.get("facebookName")));
+                var facebookName = "";
+                if(request.user != null) {
+                    facebookName = request.user.get("facebookName")
+                }
+                if(facebookName != null && facebookName != "") {
+                    mapStateResult.set("creatorFacebookName", UtilFunctions.myCiphering.encrypt(facebookName));
                 }
 
 
@@ -193,6 +197,7 @@ Parse.Cloud.define("requestNewMap", function(request, response) {
                     },
                     error: function(error) {
                         response.error(error.message);
+                        console.error("eroor in user query");
                     },
                     useMasterKey : true
                 });
@@ -249,7 +254,8 @@ Parse.Cloud.define("joinGame", function(request, response) {
                                         },
                                         error: function(error) {
                                             response.error('Failed to save Map Request to user on create new: ' + error.message + " Code: " + error.code);
-                                        }
+                                        },
+                                        useMasterKey : true
                                     });
                                 }, 
                                 error: function(error) {
@@ -293,6 +299,8 @@ Parse.Cloud.define("joinGame", function(request, response) {
                                     parameters.losses = losses;
                                     parameters.forfeits = forfeits;
                                     parameters.createdByRandom = true;
+                                    parameters.userId = request.user.id;
+                                    parameters.creatorFacebookName = request.user.get("facebookName");
                                     Parse.Cloud.run("requestNewMap", parameters, {
                                         success: function(mapState) {
                                             var installationQuery = new Parse.Query(Parse.Installation);
@@ -323,7 +331,7 @@ Parse.Cloud.define("joinGame", function(request, response) {
                                             // });
                                         },
                                         error: function(error) {
-                                            
+                                            console.error("error from requesting map");
                                         },
                                         useMasterKey : true
                                     });
