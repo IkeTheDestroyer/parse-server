@@ -23,8 +23,6 @@ if (process.env.REDIS_URL) {
     queue = kue.createQueue();
 }
 
-
-
 var UtilFunctions = require('./cloud/UtilFunctions.js');
 
 var ParseServer = require('parse-server').ParseServer;
