@@ -1,7 +1,32 @@
 // Example express application adding the parse-server module to expose Parse
 // compatible API routes.
 
-var express = require('express');
+var express = require('express')
+, kue = require('kue');
+var url = require('url');
+var redis;
+var password;
+if (process.env.REDIS_URL) {
+    var rtg = require("url").parse(process.env.REDIS_URL);
+    redis = require("redis").createClient(rtg.port, rtg.hostname);
+    password = rtg.auth.split(":")[1];
+    redis.auth(password);
+    var kueOptions = {};
+    kueOptions.redis = {
+        port: parseInt(rtg.port),
+        host: rtg.hostname,
+        auth: password
+    };
+    queue = kue.createQueue(kueOptions);
+} else {
+    redis = require("redis").createClient();
+    queue = kue.createQueue();
+}
+
+
+
+var UtilFunctions = require('./cloud/UtilFunctions.js');
+
 var ParseServer = require('parse-server').ParseServer;
 var path = require('path');
 
@@ -18,7 +43,7 @@ var api = new ParseServer({
   masterKey: process.env.MASTER_KEY || '', //Add your master key here. Keep it secret!
   serverURL: process.env.SERVER_URL || 'http://localhost:1337/parse',  // Don't forget to change to https if needed
   liveQuery: {
-    classNames: ["Posts", "Comments"] // List of classes to support for query subscriptions
+    classNames: ["Posts", "Comments"], // List of classes to support for query subscriptions
   },
   push : {
     android : {
@@ -50,7 +75,8 @@ app.use('/public', express.static(path.join(__dirname, '/public')));
 
 // Serve the Parse API on the /parse URL prefix
 var mountPath = process.env.PARSE_MOUNT || '/parse';
-app.use(mountPath, api);
+app.use(mountPath, api)
+.use(kue.app);
 
 // Parse Server plays nicely with the rest of your web routes
 app.get('/', function(req, res) {
@@ -68,6 +94,9 @@ var httpServer = require('http').createServer(app);
 httpServer.listen(port, function() {
     console.log('parse-server-example running on port ' + port + '.');
 });
+
+UtilFunctions.startExpireJob(process.env.JOB_DELAY_TIME || 300);
+
 
 // This will enable the Live Query real-time server
 ParseServer.createLiveQueryServer(httpServer);

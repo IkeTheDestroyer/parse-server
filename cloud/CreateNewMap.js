@@ -69,7 +69,7 @@ Parse.Cloud.define("requestNewMap", function(request, response) {
                 }
                 var currentDate = new Date();
                 var expireDuration = 86400000; // 24 hours
-                // var expireDuration = 50000; // 24 hours
+                // var expireDuration = 500; 
                 mapStateResult.set("expireDuration", expireDuration);
                 mapStateResult.set("expireTime", currentDate.getTime() + expireDuration);
                 mapStateResult.set("mapName", mapName);

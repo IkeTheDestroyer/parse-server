@@ -8,7 +8,6 @@
  *
  * Ben Turner, Junto Games. Copyright 2015
  */
-/// <reference path="../parse/parse.d.ts" />
 
 var UtilFunctions = require('./UtilFunctions.js');
 
@@ -16,7 +15,6 @@ var UtilFunctions = require('./UtilFunctions.js');
  * This function submits a turn from a user
  */
 Parse.Cloud.define("submitTurn", function(request, response) {
-    Parse.Cloud.useMasterKey();
     var params = request.params;
     var mapStateId = params.mapStateId;
     var mapState = Parse.Object.extend("MapState");
@@ -728,6 +726,5 @@ Parse.Cloud.define("submitTurn", function(request, response) {
     });
 
 });
-
 
 

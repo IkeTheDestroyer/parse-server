@@ -3,6 +3,7 @@ var cryptoAlgorithm = "aes-256-ctr"; //or whatever you algorithm you want to cho
 var cryptoPassword = "k2jfisj3jSDjf8485Sdfjs3pP";
 var cipher = crypto.createCipher(cryptoAlgorithm,cryptoPassword);
 var decipher = crypto.createDecipher(cryptoAlgorithm,cryptoPassword);
+var m_delay = 300;
 exports.myCiphering = {
     encrypt:function(text){
         var encrypted = cipher.update(text,'utf8','hex');
@@ -15,6 +16,69 @@ exports.myCiphering = {
         return decrypted;
     }
 };
+
+exports.startExpireJob = function(delay) {
+    // var backoff = {
+    //     delay: 60000,
+    //     type: 'fixed'
+    // };
+    m_delay = delay;
+    if(m_delay == null || m_delay == 0) {
+        m_delay = 300;
+    }
+    var job = queue.create('expireGames', {
+    }).delay(delay*1000)
+    .priority('high')
+    .removeOnComplete(true)
+    .save();
+    
+
+    queue.process('expireGames', function(job, done){
+        expireGames(done);
+    });
+}
+
+function expireGames(done) {
+    // email send stuff...
+    var totalCount = 0;
+    var expiredGames = 0;
+    // Query for all mapStates
+    var gamesToUpdate = [];
+    var query = new Parse.Query("MapState");
+    var currentDate = new Date();
+    query.lessThan("expireTime", currentDate.getTime());
+    query.find( function(mapStates) {
+        console.error("mapstates found = " + mapStates.length);
+        for (var index = 0; index < mapStates.length; index++) {
+            var mapState = mapStates[index];
+            if(mapState != null) {
+                exports.removePlayerFromMapstate(mapState.get("playersTurn"), mapState, "forfeits"); 
+                expiredGames++
+                totalCount++;
+                gamesToUpdate.push(mapState);
+            }
+        }
+    }, { useMasterKey: true }).then(function() {
+        return Parse.Object.saveAll(gamesToUpdate);
+    }).then(function() {
+        for(var index = 0; index < gamesToUpdate.length; index++) {
+            var mapState = gamesToUpdate[index];
+            var pushMessage = "Your Turn!";
+            exports.sendPush(mapState.get("playersTurn"), pushMessage, mapState);
+        }
+        // Set the job's success status
+        console.error(expiredGames + " expired games discovered. Job Complete");
+        done();
+        exports.startExpireJob(m_delay);
+        },
+        function(error) {
+        // Set the job's error status
+        console.error("Error in running expire jobs: " + error.message);
+        done();
+        exports.startExpireJob(m_delay);
+        });
+    }
+    
 
 /**
  * Returns a map template by the specified name
@@ -129,31 +193,95 @@ exports.roughSizeOfObjects = function ( object ) {
 };
 
 exports.sendPush = function(playerIndex, message, mapState, successFunction, failureFunction) {
-    var installationQuery = new Parse.Query(Parse.Installation);
+    // var installationQuery = new Parse.Query(Parse.Installation);
+    
+    //     installationQuery.equalTo(("userId"), userId);
+    //     Parse.Push.send({
+    //         where: installationQuery,
+    //         data: {
+    //             alert: message,
+    //             map: mapState.id,
+    //             sound: "default"
+    //         }
+    //      }, {
+    //         success: function() {
+    //             if(successFunction != null) {
+    //                 successFunction();
+    //             }
+    //         },
+    //         error: function(error) {
+    //             if(failureFunction != null) {
+    //                 failureFunction(error);
+    //             }
+    //         },
+    //         useMasterKey : true
+    //     });
+    // }
     var players = mapState.get("players");
     if(playerIndex >= 0 && playerIndex < players.length) {
         var userId = players[playerIndex].objectId;
-        installationQuery.equalTo(("userId"), userId);
-        Parse.Push.send({
-            where: installationQuery,
-            data: {
-                alert: message,
-                map: mapState.id,
-                sound: "default"
-            }
-         }, {
-            success: function() {
-                if(successFunction != null) {
-                    successFunction();
+        var userQuery = new Parse.Query("_User");
+        userQuery.get(userId, {
+            success : function (user) {
+                var pushIds = user.get("pushIds");
+                if(pushIds != null && pushIds.length > 0) {
+                    var notification = { 
+                        app_id: "9f784777-6c38-46c1-a82f-2a32f3b9bf7d",
+                        contents: {"en": message},
+                        include_player_ids: pushIds,
+                        data: {
+                            map: mapState.id,
+                        }
+                    };
+                    
+                    var headers = {
+                        "Content-Type": "application/json",
+                        "Authorization": "Basic N2ZmMWNjN2MtNDhhNy00ZmI1LWI4NjQtYjM0ZTVhZDA3Yjlk"
+                    };
+
+                    var options = {
+                        host: "onesignal.com",
+                        port: 443,
+                        path: "/api/v1/notifications",
+                        method: "POST",
+                        headers: headers
+                    };
+
+                    var https = require('https');
+                    var req = https.request(options, function(res) {  
+                        res.on('data', function(result) {
+                            if(successFunction != null) {
+                                successFunction();
+                            }
+                        });
+                    });
+
+                    req.on('error', function(e) {
+                        failureFunction(e.message);
+                    });
+
+                    req.write(JSON.stringify(notification));
+                    req.end();
+                } else {
+                    Debug.Log("pushIds null " + pushIds);
+                    if(successFunction != null) {
+                        successFunction();
+                    }
                 }
             },
-            error: function(error) {
+            error : function (error) {
+                console.error("userquery bad");
                 if(failureFunction != null) {
-                    failureFunction(error);
+                    failureFunction(error.message);
                 }
             },
-            useMasterKey : true
+            userMasterKey : true
         });
+    } else {
+        console.error("index bad");
+        if(successFunction != null) {
+            successFunction();
+        }
     }
 };
 
