@@ -1,6 +1,6 @@
 var crypto = require('crypto');
 var cryptoAlgorithm = "aes-256-ctr"; //or whatever you algorithm you want to choose see http://nodejs.org/api/crypto.html
-var cryptoPassword = "k2jfisj3jSDjf8485Sdfjs3pP";
+var cryptoPassword = "";
 var cipher = crypto.createCipher(cryptoAlgorithm,cryptoPassword);
 var decipher = crypto.createDecipher(cryptoAlgorithm,cryptoPassword);
 var m_delay = 300;
@@ -18,10 +18,6 @@ exports.myCiphering = {
 };
 
 exports.startExpireJob = function(delay) {
-    // var backoff = {
-    //     delay: 60000,
-    //     type: 'fixed'
-    // };
     m_delay = delay;
     if(m_delay == null || m_delay == 0) {
         m_delay = 300;
