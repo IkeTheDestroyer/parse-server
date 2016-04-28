@@ -15,8 +15,6 @@ require("./SubmitTurn.js");
 
 var UtilFunctions = require("./UtilFunctions.js");
 
-/// <reference path="../parse/parse.d.ts" />
-
 
 // Use Parse.Cloud.define to define as many cloud functions as you want.
 // For example:
@@ -297,6 +295,27 @@ Parse.Cloud.define("addCredits", function(request, response) {
     var amount = request.params.amount;
     if(request.user != null) {
         request.user.increment("credits", amount);
+        request.user.save(null, {
+            success: function() {
+                response.success();
+            },
+            error: function(error) {
+                response.error(error.message);
+            },
+            useMasterKey : true
+        });
+    } else {
+        response.error("User not set");
+    }
+});
+
+/**
+ * add credits
+ */
+Parse.Cloud.define("addPushId", function(request, response) {
+    var pushId = request.params.pushId;
+    if(request.user != null) {
+        request.user.addUnique("pushIds", pushId);
         request.user.save(null, {
             success: function() {
                 response.success();
